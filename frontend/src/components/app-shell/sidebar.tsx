@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   BarChart3,
   Bell,
@@ -13,6 +14,7 @@ import {
   Plug,
   Search,
   Settings,
+  Shield,
   Sparkles,
   Upload,
   Users,
@@ -25,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { useCommandPalette } from "@/components/command-palette";
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
@@ -33,27 +35,31 @@ interface NavItem {
 }
 
 const MAIN_NAV: NavItem[] = [
-  { label: "Tableau de bord", href: "/dashboard", icon: Home },
-  { label: "Factures", href: "/invoices", icon: FileText },
-  { label: "Rapports", href: "/reports", icon: BarChart3 },
-  { label: "Fournisseurs", href: "/suppliers", icon: Building2 },
-  { label: "Importer", href: "/upload", icon: Upload },
-  { label: "Intégrations", href: "/integrations", icon: Plug, adminOnly: true },
+  { labelKey: "dashboard", href: "/dashboard", icon: Home },
+  { labelKey: "invoices", href: "/invoices", icon: FileText },
+  { labelKey: "reports", href: "/reports", icon: BarChart3 },
+  { labelKey: "suppliers", href: "/suppliers", icon: Building2 },
+  { labelKey: "upload", href: "/upload", icon: Upload },
+  { labelKey: "integrations", href: "/integrations", icon: Plug, adminOnly: true },
 ];
 
 const ADMIN_NAV_BASE: NavItem[] = [
-  { label: "Utilisateurs", href: "/admin/users", icon: Users, adminOnly: true },
-  { label: "Audit", href: "/admin/audit", icon: BarChart3 },
-  { label: "Notifications", href: "/notifications", icon: Bell },
-  { label: "Paramètres", href: "/settings", icon: Settings },
+  { labelKey: "users", href: "/admin/users", icon: Users, adminOnly: true },
+  { labelKey: "audit", href: "/admin/audit", icon: BarChart3 },
+  { labelKey: "ip_rules", href: "/admin/security/ip-rules", icon: Shield, adminOnly: true },
+  { labelKey: "saml", href: "/admin/security/saml", icon: Shield, adminOnly: true },
+  { labelKey: "notifications", href: "/notifications", icon: Bell },
+  { labelKey: "settings", href: "/settings", icon: Settings },
 ];
 
 function NavRow({
   item,
   active,
+  label,
 }: {
   item: NavItem;
   active: boolean;
+  label: string;
 }) {
   const Icon = item.icon;
   return (
@@ -78,7 +84,7 @@ function NavRow({
       }
     >
       <Icon className={cn("h-[15px] w-[15px] shrink-0", active && "text-violet-300")} />
-      <span className="flex-1">{item.label}</span>
+      <span className="flex-1">{label}</span>
       {item.badge !== undefined && (
         <span
           className="ml-auto rounded-full px-1.5 py-[1px] text-[10px] font-semibold text-violet-200"
@@ -99,6 +105,9 @@ export function Sidebar({ user }: { user: User | null }) {
   const router = useRouter();
   const isAdmin = user?.role === "admin";
   const cmd = useCommandPalette();
+  const tApp = useTranslations("app");
+  const tNav = useTranslations("nav");
+  const tPromo = useTranslations("promo");
   const [unread, setUnread] = useState<number>(0);
 
   useEffect(() => {
@@ -177,7 +186,7 @@ export function Sidebar({ user }: { user: User | null }) {
                 borderColor: "rgba(139,92,246,0.4)",
               }}
             >
-              admin
+              {tApp("admin_badge")}
             </span>
           )}
         </div>
@@ -189,25 +198,25 @@ export function Sidebar({ user }: { user: User | null }) {
           onClick={cmd.open}
         >
           <Search className="h-[14px] w-[14px] shrink-0 text-white/35" />
-          <span className="flex-1 text-left text-[12px] text-white/35">Rechercher…</span>
+          <span className="flex-1 text-left text-[12px] text-white/35">{tApp("search_placeholder")}</span>
           <span className="raijin-kbd">⌘K</span>
         </button>
 
         {/* Main nav */}
         <nav className="space-y-0.5">
           {MAIN_NAV.filter((i) => !i.adminOnly || isAdmin).map((item) => (
-            <NavRow key={item.href} item={item} active={isActive(item.href)} />
+            <NavRow key={item.href} item={item} active={isActive(item.href)} label={tNav(item.labelKey)} />
           ))}
         </nav>
 
         {/* Admin group */}
         <div className="mt-4">
           <div className="px-2.5 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
-            Admin
+            {tNav("section_admin")}
           </div>
           <nav className="space-y-0.5">
             {ADMIN_NAV.filter((i) => !i.adminOnly || isAdmin).map((item) => (
-              <NavRow key={item.href} item={item} active={isActive(item.href)} />
+              <NavRow key={item.href} item={item} active={isActive(item.href)} label={tNav(item.labelKey)} />
             ))}
           </nav>
         </div>
@@ -231,13 +240,13 @@ export function Sidebar({ user }: { user: User | null }) {
           <div className="relative">
             <div className="mb-2 inline-flex items-center gap-1 text-[10px] font-semibold text-violet-300">
               <Sparkles className="h-3 w-3" />
-              Automatiser plus
+              {tPromo("mydata_title")}
             </div>
             <p className="font-serif-italic mb-1.5 text-[15px] leading-tight text-white/95">
-              Connecter myDATA
+              {tPromo("mydata_title")}
             </p>
             <p className="mb-3 text-[11px] leading-[1.5] text-white/35">
-              Déclare automatiquement tes factures validées à l&apos;AADE.
+              {tPromo("mydata_desc")}
             </p>
             <Link
               href="/integrations"
@@ -247,7 +256,7 @@ export function Sidebar({ user }: { user: User | null }) {
                 boxShadow: "0 8px 24px -8px rgba(139,92,246,0.6)",
               }}
             >
-              Configurer
+              {tPromo("mydata_cta")}
             </Link>
           </div>
         </div>

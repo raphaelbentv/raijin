@@ -25,6 +25,7 @@ from app.routers import metrics as metrics_router
 from app.routers import notifications as notifications_router
 from app.routers import portal as portal_router
 from app.routers import reports as reports_router
+from app.routers import saml as saml_router
 from app.routers import search as search_router
 from app.routers import security as security_router
 from app.routers import suppliers as suppliers_router
@@ -68,6 +69,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router.router)
+app.include_router(saml_router.router)
 app.include_router(invoices_router.router)
 app.include_router(suppliers_router.router)
 app.include_router(search_router.router)

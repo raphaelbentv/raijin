@@ -62,6 +62,7 @@ class Settings(BaseSettings):
     )
 
     frontend_url: str = "http://localhost:6100"
+    backend_public_url: str = "http://localhost:6200"
 
     smtp_host: str = ""
     smtp_port: int = 587

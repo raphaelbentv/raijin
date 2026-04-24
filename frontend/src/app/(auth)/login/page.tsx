@@ -135,7 +135,57 @@ export default function LoginPage() {
             </Link>
           </p>
         </form>
+
+        <div className="mt-6 border-t border-white/[0.08] pt-5">
+          <SamlSsoButton />
+        </div>
       </div>
     </div>
+  );
+}
+
+function SamlSsoButton() {
+  const [slug, setSlug] = useState("");
+  const [show, setShow] = useState(false);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:6200";
+  if (!show) {
+    return (
+      <button
+        type="button"
+        onClick={() => setShow(true)}
+        className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[13px] text-white/70 transition hover:bg-white/[0.04]"
+      >
+        Connexion SSO (SAML)
+      </button>
+    );
+  }
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (slug.trim()) {
+          window.location.href = `${apiUrl}/auth/saml/login/${encodeURIComponent(slug.trim())}`;
+        }
+      }}
+      className="space-y-2"
+    >
+      <Label htmlFor="saml-slug" className="text-white/80">
+        Identifiant de l&apos;organisation
+      </Label>
+      <Input
+        id="saml-slug"
+        placeholder="ex. acme"
+        value={slug}
+        onChange={(e) => setSlug(e.target.value)}
+        className="border-white/10 bg-white/[0.04] text-white placeholder:text-white/35"
+      />
+      <button
+        type="submit"
+        disabled={!slug.trim()}
+        className="btn-glass w-full justify-center disabled:opacity-60"
+      >
+        Continuer vers l&apos;IdP
+      </button>
+    </form>
   );
 }

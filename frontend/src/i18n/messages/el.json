@@ -1,18 +1,72 @@
 {
   "app": {
     "name": "Raijin",
-    "tagline": "Αυτοματισμός τιμολογίων"
+    "tagline": "Αυτοματοποίηση τιμολογίων",
+    "admin_badge": "admin",
+    "loading": "Φόρτωση…",
+    "search_placeholder": "Αναζήτηση…"
+  },
+  "nav": {
+    "dashboard": "Πίνακας ελέγχου",
+    "invoices": "Τιμολόγια",
+    "reports": "Αναφορές",
+    "suppliers": "Προμηθευτές",
+    "upload": "Εισαγωγή",
+    "integrations": "Ενσωματώσεις",
+    "section_admin": "Διαχείριση",
+    "users": "Χρήστες",
+    "audit": "Καταγραφή",
+    "ip_rules": "Περιορισμοί IP",
+    "saml": "SAML SSO",
+    "notifications": "Ειδοποιήσεις",
+    "settings": "Ρυθμίσεις",
+    "logout": "Αποσύνδεση"
+  },
+  "promo": {
+    "mydata_title": "Σύνδεση myDATA",
+    "mydata_desc": "Υποβάλλει αυτόματα τα εγκεκριμένα τιμολόγια στην ΑΑΔΕ.",
+    "mydata_cta": "Διαμόρφωση"
   },
   "auth": {
-    "login": "Σύνδεση",
-    "register": "Εγγραφή",
+    "login_title": "Σύνδεση",
+    "register_title": "Δημιουργία λογαριασμού",
+    "forgot_password": "Ξεχάσατε τον κωδικό;",
     "email": "Email",
     "password": "Κωδικός",
-    "submit": "Υποβολή"
+    "full_name": "Ονοματεπώνυμο",
+    "submit_login": "Σύνδεση",
+    "submit_register": "Δημιουργία λογαριασμού",
+    "invalid_credentials": "Λανθασμένο email ή κωδικός.",
+    "totp_title": "Κωδικός επαλήθευσης",
+    "totp_hint": "Εισάγετε τον 6ψήφιο κωδικό από την εφαρμογή αυθεντικοποίησης.",
+    "totp_submit": "Επαλήθευση"
+  },
+  "common": {
+    "save": "Αποθήκευση",
+    "cancel": "Ακύρωση",
+    "confirm": "Επιβεβαίωση",
+    "delete": "Διαγραφή",
+    "edit": "Επεξεργασία",
+    "close": "Κλείσιμο",
+    "retry": "Επανάληψη",
+    "error_network": "Σφάλμα δικτύου",
+    "required": "Υποχρεωτικό"
+  },
+  "settings": {
+    "title": "Ρυθμίσεις",
+    "tab_profile": "Προφίλ",
+    "tab_security": "Ασφάλεια",
+    "tab_notifications": "Ειδοποιήσεις",
+    "tab_api_keys": "Κλειδιά API",
+    "tab_sessions": "Συνεδρίες",
+    "language": "Γλώσσα",
+    "language_fr": "Français",
+    "language_en": "English",
+    "language_el": "Ελληνικά",
+    "language_saved": "Η γλώσσα ενημερώθηκε."
   },
   "dashboard": {
-    "title": "Πίνακας ελέγχου",
-    "invoices": "Τιμολόγια",
-    "upload": "Μεταφόρτωση"
+    "greeting": "Γεια σου",
+    "welcome_empty": "Καλώς ήλθατε στο Raijin."
   }
 }

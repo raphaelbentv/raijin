@@ -1,18 +1,72 @@
 {
   "app": {
     "name": "Raijin",
-    "tagline": "Automatisation de factures"
+    "tagline": "Automatisation de factures",
+    "admin_badge": "admin",
+    "loading": "Chargement…",
+    "search_placeholder": "Rechercher…"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "invoices": "Factures",
+    "reports": "Rapports",
+    "suppliers": "Fournisseurs",
+    "upload": "Importer",
+    "integrations": "Intégrations",
+    "section_admin": "Admin",
+    "users": "Utilisateurs",
+    "audit": "Audit",
+    "ip_rules": "Restrictions IP",
+    "saml": "SSO SAML",
+    "notifications": "Notifications",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter"
+  },
+  "promo": {
+    "mydata_title": "Connecter myDATA",
+    "mydata_desc": "Déclare automatiquement tes factures validées à l'AADE.",
+    "mydata_cta": "Configurer"
   },
   "auth": {
-    "login": "Connexion",
-    "register": "Inscription",
+    "login_title": "Connexion",
+    "register_title": "Créer un compte",
+    "forgot_password": "Mot de passe oublié ?",
     "email": "Email",
     "password": "Mot de passe",
-    "submit": "Valider"
+    "full_name": "Nom complet",
+    "submit_login": "Se connecter",
+    "submit_register": "Créer mon compte",
+    "invalid_credentials": "Email ou mot de passe incorrect.",
+    "totp_title": "Code de vérification",
+    "totp_hint": "Entre le code à 6 chiffres de ton app d'authentification.",
+    "totp_submit": "Valider"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "retry": "Réessayer",
+    "error_network": "Erreur réseau",
+    "required": "Requis"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "tab_profile": "Profil",
+    "tab_security": "Sécurité",
+    "tab_notifications": "Notifications",
+    "tab_api_keys": "Clés API",
+    "tab_sessions": "Sessions",
+    "language": "Langue",
+    "language_fr": "Français",
+    "language_en": "English",
+    "language_el": "Ελληνικά",
+    "language_saved": "Langue mise à jour."
   },
   "dashboard": {
-    "title": "Tableau de bord",
-    "invoices": "Factures",
-    "upload": "Importer"
+    "greeting": "Bonjour",
+    "welcome_empty": "Bienvenue dans Raijin."
   }
 }

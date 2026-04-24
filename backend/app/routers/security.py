@@ -227,6 +227,20 @@ async def create_ip_rule(body: IpRuleIn, db: DbSession, user: CurrentUser) -> Ip
     return IpRuleOut.model_validate(rule)
 
 
+@router.delete("/ip-rules/{rule_id}", status_code=204, dependencies=[RequireAdmin])
+async def delete_ip_rule(rule_id: uuid.UUID, db: DbSession, user: CurrentUser) -> None:
+    rule = await db.scalar(
+        select(TenantIpRule).where(
+            TenantIpRule.id == rule_id,
+            TenantIpRule.tenant_id == user.tenant_id,
+        )
+    )
+    if rule is None:
+        raise HTTPException(status_code=404, detail="ip_rule_not_found")
+    await db.delete(rule)
+    await db.commit()
+
+
 @router.get("/saml", response_model=SamlConfigOut | None, dependencies=[RequireAdmin])
 async def get_saml_config(db: DbSession, user: CurrentUser):
     config = await db.scalar(select(SamlConfig).where(SamlConfig.tenant_id == user.tenant_id))

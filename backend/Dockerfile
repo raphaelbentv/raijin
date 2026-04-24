@@ -10,6 +10,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     libpq-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    libxmlsec1-openssl \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

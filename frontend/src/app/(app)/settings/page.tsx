@@ -97,6 +97,10 @@ export default function SettingsPage() {
       });
       setUser(updated);
       toast.success("Profil enregistré");
+      if (locale !== (user.locale ?? "fr")) {
+        document.cookie = `raijin.locale=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+        window.location.reload();
+      }
     } catch {
       toast.error("Enregistrement impossible");
     } finally {
@@ -487,6 +491,59 @@ export default function SettingsPage() {
             <button className="btn-primary-violet" onClick={saveNotificationPrefs}>
               Enregistrer les préférences
             </button>
+          </Section>
+
+          <Section
+            title="Mes données"
+            description="Exporte ou demande la suppression de tes données personnelles (RGPD)."
+          >
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                className="btn-glass"
+                onClick={async () => {
+                  try {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:6200";
+                    const token = (await import("@/lib/auth")).getAccessToken();
+                    const res = await fetch(`${apiUrl}/security/gdpr/export`, {
+                      headers: token ? { Authorization: `Bearer ${token}` } : {},
+                    });
+                    if (!res.ok) throw new Error(`status_${res.status}`);
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "raijin-gdpr-export.zip";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    toast.success("Export téléchargé");
+                  } catch {
+                    toast.error("Export impossible");
+                  }
+                }}
+              >
+                Télécharger mes données (.zip)
+              </button>
+              <button
+                className="btn-glass text-rose-200 hover:text-rose-100"
+                onClick={async () => {
+                  if (!confirm("Demander la suppression de ton compte et de toutes tes données sous 30 jours ?")) return;
+                  try {
+                    await apiFetch("/security/gdpr/delete-request", { method: "POST" });
+                    toast.success("Demande de suppression enregistrée. Tu recevras une confirmation par email.");
+                  } catch (err) {
+                    const msg = err instanceof ApiError ? `Erreur ${err.status}` : "Erreur réseau";
+                    toast.error(msg);
+                  }
+                }}
+              >
+                Demander la suppression
+              </button>
+            </div>
+            <p className="text-[11px] text-white/35">
+              L&apos;export inclut ton profil, tes factures, tes fournisseurs et tes sessions. La suppression est planifiée à +30 jours et réversible pendant cette période.
+            </p>
           </Section>
         </div>
       )}

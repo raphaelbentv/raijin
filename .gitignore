@@ -30,8 +30,11 @@ next-env.d.ts
 .env.*.local
 .env.production
 .env.production.secrets
+.env.staging
+.env.staging.secrets
 !.env.example
 !.env.production.example
+!.env.staging.example
 
 # IDE
 .idea/

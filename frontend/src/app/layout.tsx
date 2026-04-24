@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import { ErrorReporter } from "@/components/error-reporter";
 import "./globals.css";
@@ -31,17 +33,21 @@ export const metadata: Metadata = {
   description: "Automatisation OCR de factures fournisseurs",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
     <html
-      lang="fr"
+      lang={locale}
       suppressHydrationWarning
       className={`${inter.variable} ${fraunces.variable} ${jetbrains.variable}`}
     >
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ErrorReporter />
-        {children}
-        <Toaster position="top-right" richColors theme="dark" />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ErrorReporter />
+          {children}
+          <Toaster position="top-right" richColors theme="dark" />
+        </NextIntlClientProvider>
       </body>
     </html>
   );
