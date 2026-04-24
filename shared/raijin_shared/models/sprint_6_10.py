@@ -1,7 +1,17 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -142,3 +152,21 @@ class SamlConfig(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     sso_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     certificate: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
+class GdprDeletionRequest(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    __tablename__ = "gdpr_deletion_requests"
+    __table_args__ = (
+        Index("ix_gdpr_deletion_requests_tenant_user", "tenant_id", "user_id"),
+        Index("ix_gdpr_deletion_requests_status_scheduled", "status", "scheduled_for"),
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    scheduled_for: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")

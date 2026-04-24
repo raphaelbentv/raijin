@@ -17,10 +17,10 @@ from raijin_shared.models.mydata import (
     MyDataSubmissionStatus,
 )
 from raijin_shared.models.notification import Notification, NotificationKind
-from raijin_shared.models.supplier import Supplier
 from raijin_shared.models.sprint_6_10 import (
     ApiKey,
     BankTransaction,
+    GdprDeletionRequest,
     InvoiceCategory,
     InvoiceComment,
     InvoiceShareLink,
@@ -28,12 +28,13 @@ from raijin_shared.models.sprint_6_10 import (
     TenantIpRule,
     UserSession,
 )
+from raijin_shared.models.supplier import Supplier
 from raijin_shared.models.tenant import Tenant
 from raijin_shared.models.user import User, UserRole
 
 __all__ = [
-    "AuditLog",
     "ApiKey",
+    "AuditLog",
     "BankTransaction",
     "Base",
     "CloudDriveProvider",
@@ -44,6 +45,7 @@ __all__ = [
     "ErpConnectorKind",
     "ErpExport",
     "ErpExportStatus",
+    "GdprDeletionRequest",
     "Invoice",
     "InvoiceCategory",
     "InvoiceComment",
@@ -59,8 +61,8 @@ __all__ = [
     "NotificationKind",
     "SamlConfig",
     "Supplier",
-    "TenantIpRule",
     "Tenant",
+    "TenantIpRule",
     "User",
     "UserRole",
     "UserSession",

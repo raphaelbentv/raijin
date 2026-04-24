@@ -61,6 +61,8 @@ export default function SettingsPage() {
   const [newKeyName, setNewKeyName] = useState("Integration key");
   const [newKeySecret, setNewKeySecret] = useState<string | null>(null);
   const [totpUrl, setTotpUrl] = useState<string | null>(null);
+  const [totpCode, setTotpCode] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [notificationPrefs, setNotificationPrefs] = useState<Record<string, { in_app: boolean; email: boolean }>>({});
 
   useEffect(() => {
@@ -127,13 +129,14 @@ export default function SettingsPage() {
   }
 
   async function setupTotp() {
-    const setup = await apiFetch<{ otpauth_url: string }>("/security/totp/setup", { method: "POST" });
+    const setup = await apiFetch<{ otpauth_url: string; backup_codes: string[] }>("/security/totp/setup", { method: "POST" });
     setTotpUrl(setup.otpauth_url);
+    setBackupCodes(setup.backup_codes);
     toast.success("Secret 2FA généré");
   }
 
   async function enableTotp() {
-    await apiFetch("/security/totp/enable", { method: "POST" });
+    await apiFetch("/security/totp/enable", { method: "POST", json: { code: totpCode } });
     setUser((u) => (u ? { ...u, totp_enabled: true } : u));
     toast.success("2FA activée");
   }
@@ -367,14 +370,29 @@ export default function SettingsPage() {
           <Section title="2FA TOTP" description="Prépare un secret compatible Authenticator.">
             <div className="flex gap-2">
               <button className="btn-glass" onClick={setupTotp}>Générer</button>
-              <button className="btn-primary-violet" onClick={enableTotp} disabled={!totpUrl}>
+              <Input
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value)}
+                placeholder="Code 6 chiffres"
+                className="max-w-[160px] border-white/10 bg-white/[0.04] font-mono text-white"
+              />
+              <button className="btn-primary-violet" onClick={enableTotp} disabled={!totpUrl || !totpCode}>
                 {user.totp_enabled ? "Activée" : "Activer"}
               </button>
             </div>
             {totpUrl && (
-              <p className="break-all rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 font-mono text-[11px] text-white/55">
-                {totpUrl}
-              </p>
+              <div className="space-y-2">
+                <p className="break-all rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 font-mono text-[11px] text-white/55">
+                  {totpUrl}
+                </p>
+                {backupCodes.length > 0 && (
+                  <div className="grid gap-1 rounded-lg border border-amber-300/20 bg-amber-300/10 p-3 font-mono text-[11px] text-amber-100 sm:grid-cols-2">
+                    {backupCodes.map((code) => (
+                      <span key={code}>{code}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </Section>
 

@@ -4,6 +4,8 @@ import base64
 import hashlib
 import hmac
 import secrets
+import struct
+import time
 from datetime import UTC, datetime
 
 from raijin_shared.models.sprint_6_10 import ApiKey, UserSession
@@ -96,6 +98,36 @@ async def touch_session(session: AsyncSession, *, refresh_token: str) -> None:
 
 def generate_totp_secret() -> str:
     return base64.b32encode(secrets.token_bytes(20)).decode("ascii").rstrip("=")
+
+
+def _totp_at(secret: str, counter: int, digits: int = 6) -> str:
+    padding = "=" * ((8 - len(secret) % 8) % 8)
+    key = base64.b32decode(f"{secret}{padding}", casefold=True)
+    digest = hmac.new(key, struct.pack(">Q", counter), hashlib.sha1).digest()
+    offset = digest[-1] & 0x0F
+    code = struct.unpack(">I", digest[offset : offset + 4])[0] & 0x7FFFFFFF
+    return str(code % (10**digits)).zfill(digits)
+
+
+def verify_totp_code(secret: str, code: str, *, period: int = 30, window: int = 1) -> bool:
+    normalized = "".join(ch for ch in code if ch.isdigit())
+    if len(normalized) != 6:
+        return False
+    counter = int(time.time() // period)
+    return any(
+        constant_time_match(_totp_at(secret, counter + skew), normalized)
+        for skew in range(-window, window + 1)
+    )
+
+
+def verify_backup_code(stored_hashes: list[str] | None, code: str | None) -> list[str] | None:
+    if not stored_hashes or not code:
+        return None
+    candidate = hash_secret(code.strip())
+    for idx, stored in enumerate(stored_hashes):
+        if constant_time_match(stored, candidate) or constant_time_match(stored, code.strip()):
+            return [item for pos, item in enumerate(stored_hashes) if pos != idx]
+    return None
 
 
 def totp_uri(*, secret: str, issuer: str, account: str) -> str:

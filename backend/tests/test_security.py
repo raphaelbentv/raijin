@@ -1,3 +1,4 @@
+import time
 import uuid
 
 import pytest
@@ -10,6 +11,12 @@ from app.core.security import (
     hash_password,
     password_fingerprint_matches,
     verify_password,
+)
+from app.services.security_management import (
+    _totp_at,
+    hash_secret,
+    verify_backup_code,
+    verify_totp_code,
 )
 
 
@@ -58,3 +65,13 @@ def test_password_reset_token_carries_password_fingerprint() -> None:
     assert payload["type"] == "password_reset"
     assert password_fingerprint_matches(password_hash, payload["pwd"]) is True
     assert password_fingerprint_matches(hash_password("new-password-2026"), payload["pwd"]) is False
+
+
+def test_totp_and_backup_codes_verify() -> None:
+    secret = "JBSWY3DPEHPK3PXP"
+    code = _totp_at(secret, int(time.time() // 30))
+
+    assert verify_totp_code(secret, code) is True
+    assert verify_totp_code(secret, "000000") is False
+    assert verify_backup_code([hash_secret("ABCD-EFGH-IJKL")], "ABCD-EFGH-IJKL") == []
+    assert verify_backup_code([hash_secret("ABCD-EFGH-IJKL")], "wrong") is None

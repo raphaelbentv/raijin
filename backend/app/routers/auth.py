@@ -19,6 +19,7 @@ from app.services.auth import (
     InactiveUserError,
     InvalidCredentialsError,
     InvalidResetTokenError,
+    TotpRequiredError,
     authenticate,
     issue_token_pair,
     refresh_access_token,
@@ -62,7 +63,13 @@ async def register(request: Request, payload: RegisterRequest, db: DbSession) ->
 @limiter.limit(login_rate)
 async def login(request: Request, payload: LoginRequest, db: DbSession) -> TokenPair:
     try:
-        user = await authenticate(db, email=payload.email, password=payload.password)
+        user = await authenticate(
+            db,
+            email=payload.email,
+            password=payload.password,
+            totp_code=payload.totp_code,
+            backup_code=payload.backup_code,
+        )
     except InvalidCredentialsError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials"
@@ -70,6 +77,10 @@ async def login(request: Request, payload: LoginRequest, db: DbSession) -> Token
     except InactiveUserError as exc:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="user_inactive"
+        ) from exc
+    except TotpRequiredError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_428_PRECONDITION_REQUIRED, detail="totp_required"
         ) from exc
 
     access, refresh = issue_token_pair(user)

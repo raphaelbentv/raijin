@@ -15,6 +15,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [totpRequired, setTotpRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,12 +28,15 @@ export default function LoginPage() {
       const tokens = await apiFetch<TokenPair>("/auth/login", {
         method: "POST",
         auth: false,
-        json: { email, password },
+        json: { email, password, totp_code: totpCode || null },
       });
       setTokens(tokens.access_token, tokens.refresh_token);
       router.push("/dashboard");
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
+      if (err instanceof ApiError && err.status === 428) {
+        setTotpRequired(true);
+        setError("Code 2FA requis.");
+      } else if (err instanceof ApiError && err.status === 401) {
         setError("Email ou mot de passe incorrect.");
       } else {
         setError("Erreur serveur, réessaye dans un instant.");
@@ -89,6 +94,21 @@ export default function LoginPage() {
               className="border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus-visible:ring-violet-500/50"
             />
           </div>
+          {totpRequired && (
+            <div className="space-y-2">
+              <Label htmlFor="totp" className="text-white/80">
+                Code 2FA
+              </Label>
+              <Input
+                id="totp"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value)}
+                className="border-white/10 bg-white/[0.04] font-mono text-white placeholder:text-white/35 focus-visible:ring-violet-500/50"
+              />
+            </div>
+          )}
           {error && <p className="text-[13px] text-rose-400">{error}</p>}
           <button
             type="submit"

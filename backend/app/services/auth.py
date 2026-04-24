@@ -19,6 +19,7 @@ from app.core.security import (
     verify_password,
 )
 from app.services.email_delivery import send_transactional_email
+from app.services.security_management import verify_backup_code, verify_totp_code
 
 
 class AuthError(Exception):
@@ -38,6 +39,10 @@ class InactiveUserError(AuthError):
 
 
 class InvalidResetTokenError(AuthError):
+    pass
+
+
+class TotpRequiredError(AuthError):
     pass
 
 
@@ -91,14 +96,28 @@ async def register_tenant_and_admin(
     return user
 
 
-async def authenticate(session: AsyncSession, *, email: str, password: str) -> User:
-    user = await session.scalar(
-        select(User).where(User.email == email.lower())
-    )
+async def authenticate(
+    session: AsyncSession,
+    *,
+    email: str,
+    password: str,
+    totp_code: str | None = None,
+    backup_code: str | None = None,
+) -> User:
+    user = await session.scalar(select(User).where(User.email == email.lower()))
     if not user or not verify_password(password, user.password_hash):
         raise InvalidCredentialsError()
     if not user.is_active:
         raise InactiveUserError()
+    if user.totp_enabled:
+        secret = user.totp_secret_encrypted
+        valid_totp = bool(secret and totp_code and verify_totp_code(secret, totp_code))
+        remaining_backup_codes = verify_backup_code(user.backup_codes, backup_code)
+        if not valid_totp and remaining_backup_codes is None:
+            raise TotpRequiredError()
+        if remaining_backup_codes is not None:
+            user.backup_codes = remaining_backup_codes
+            await session.commit()
     await session.refresh(user, attribute_names=["tenant"])
     return user
 

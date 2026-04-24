@@ -2,14 +2,20 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 from raijin_shared.models.invoice import Invoice
-from raijin_shared.models.sprint_6_10 import ApiKey, SamlConfig, TenantIpRule, UserSession
+from raijin_shared.models.sprint_6_10 import (
+    ApiKey,
+    GdprDeletionRequest,
+    SamlConfig,
+    TenantIpRule,
+    UserSession,
+)
 from raijin_shared.models.supplier import Supplier
 from sqlalchemy import select
 
@@ -19,7 +25,9 @@ from app.services.security_management import (
     backup_code,
     create_api_key,
     generate_totp_secret,
+    hash_secret,
     totp_uri,
+    verify_totp_code,
 )
 
 router = APIRouter(prefix="/security", tags=["security"])
@@ -53,6 +61,10 @@ class TotpSetupOut(BaseModel):
     secret: str
     otpauth_url: str
     backup_codes: list[str]
+
+
+class TotpEnableIn(BaseModel):
+    code: str = Field(min_length=6, max_length=16)
 
 
 class SessionOut(BaseModel):
@@ -89,6 +101,15 @@ class SamlConfigOut(SamlConfigIn):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+
+
+class GdprDeletionRequestOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    requested_at: datetime
+    scheduled_for: datetime
+    status: str
 
 
 @router.get("/api-keys", response_model=list[ApiKeyOut])
@@ -159,7 +180,7 @@ async def setup_totp(db: DbSession, user: CurrentUser) -> TotpSetupOut:
     secret = generate_totp_secret()
     codes = [backup_code() for _ in range(8)]
     user.totp_secret_encrypted = secret
-    user.backup_codes = codes
+    user.backup_codes = [hash_secret(code) for code in codes]
     user.totp_enabled = False
     await db.commit()
     return TotpSetupOut(
@@ -170,9 +191,11 @@ async def setup_totp(db: DbSession, user: CurrentUser) -> TotpSetupOut:
 
 
 @router.post("/totp/enable", status_code=204)
-async def enable_totp(db: DbSession, user: CurrentUser) -> None:
+async def enable_totp(body: TotpEnableIn, db: DbSession, user: CurrentUser) -> None:
     if not user.totp_secret_encrypted:
         raise HTTPException(status_code=400, detail="totp_not_setup")
+    if not verify_totp_code(user.totp_secret_encrypted, body.code):
+        raise HTTPException(status_code=400, detail="invalid_totp_code")
     user.totp_enabled = True
     await db.commit()
 
@@ -277,3 +300,32 @@ async def gdpr_export(db: DbSession, user: CurrentUser) -> Response:
         media_type="application/zip",
         headers={"Content-Disposition": 'attachment; filename="raijin-gdpr-export.zip"'},
     )
+
+
+@router.post(
+    "/gdpr/delete-request",
+    response_model=GdprDeletionRequestOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def request_gdpr_deletion(db: DbSession, user: CurrentUser) -> GdprDeletionRequestOut:
+    existing = await db.scalar(
+        select(GdprDeletionRequest).where(
+            GdprDeletionRequest.tenant_id == user.tenant_id,
+            GdprDeletionRequest.user_id == user.id,
+            GdprDeletionRequest.status == "pending",
+        )
+    )
+    if existing is not None:
+        return GdprDeletionRequestOut.model_validate(existing)
+    now = datetime.now(UTC)
+    item = GdprDeletionRequest(
+        tenant_id=user.tenant_id,
+        user_id=user.id,
+        requested_at=now,
+        scheduled_for=now + timedelta(days=30),
+        status="pending",
+    )
+    db.add(item)
+    await db.commit()
+    await db.refresh(item)
+    return GdprDeletionRequestOut.model_validate(item)
