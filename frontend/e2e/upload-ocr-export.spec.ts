@@ -22,6 +22,7 @@ async function waitForReview(invoiceId: string, accessToken: string) {
 
 test.describe("Invoices — upload OCR review export", () => {
   test("uploads a PDF, waits for mocked OCR, confirms, and exports Excel", async ({ page }) => {
+    test.setTimeout(90_000); // CI worker cold-start can delay OCR processing
     const account = makeAccount("upload");
     const tokens = await registerViaApi(account);
     await page.goto("/login");
