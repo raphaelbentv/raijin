@@ -38,11 +38,15 @@ test.describe("Invoices — upload OCR review export", () => {
     await page
       .locator('input[type="file"]')
       .setInputFiles(path.join(process.cwd(), "e2e/fixtures/invoice-sprint5.pdf"));
+    // Match any response on /invoices/upload with an explicit 60 s timeout — in CI the first
+    // upload can take longer due to MinIO + Celery enqueue cold start.
     const uploadResponsePromise = page.waitForResponse(
-      (response) => response.url().includes("/invoices/upload") && response.status() === 201,
+      (response) => response.url().includes("/invoices/upload"),
+      { timeout: 60_000 },
     );
-    await page.getByRole("button", { name: /Importer/ }).click();
+    await page.getByRole("button", { name: /^Importer/ }).click();
     const uploadResponse = await uploadResponsePromise;
+    expect(uploadResponse.status(), `upload response body: ${await uploadResponse.text().catch(() => "<n/a>")}`).toBe(201);
     const uploaded = (await uploadResponse.json()) as { id: string };
     await page.goto(`/invoices/${uploaded.id}`);
 
