@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Raijin",
+    "tagline": "Invoice automation"
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Submit"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "invoices": "Invoices",
+    "upload": "Upload"
+  }
+}

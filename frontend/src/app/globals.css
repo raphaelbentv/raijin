@@ -1,0 +1,275 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 14% 3%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 262 83% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 11%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 240 4% 11%;
+    --muted-foreground: 240 5% 60%;
+    --accent: 240 4% 14%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 4% 18%;
+    --input: 240 4% 14%;
+    --ring: 262 83% 65%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Raijin — Liquid glass theme (dashboard + app shell)
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+  --raijin-bg: #050508;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.14);
+  --glass-reflex: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 30%,
+    transparent 60%
+  );
+  --raijin-accent: #8b5cf6;
+  --raijin-accent-indigo: #6366f1;
+  --raijin-accent-mint: #10b981;
+  --raijin-accent-warn: #f59e0b;
+  --raijin-accent-danger: #ef4444;
+  --raijin-text-primary: rgba(255, 255, 255, 0.95);
+  --raijin-text-secondary: rgba(255, 255, 255, 0.6);
+  --raijin-text-tertiary: rgba(255, 255, 255, 0.35);
+  --raijin-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --raijin-transition: 300ms var(--raijin-ease);
+}
+
+.raijin-shell {
+  background: var(--raijin-bg);
+  color: var(--raijin-text-primary);
+  min-height: 100vh;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* Ambient blobs behind the glass */
+.raijin-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.raijin-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+  mix-blend-mode: screen;
+  animation: raijin-drift 22s ease-in-out infinite alternate;
+}
+.raijin-blob-1 {
+  width: 640px;
+  height: 640px;
+  top: -200px;
+  left: -140px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.32) 0%, transparent 70%);
+}
+.raijin-blob-2 {
+  width: 720px;
+  height: 720px;
+  top: 28%;
+  left: 32%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, transparent 70%);
+  animation-duration: 28s;
+  animation-delay: -8s;
+}
+.raijin-blob-3 {
+  width: 520px;
+  height: 520px;
+  bottom: -120px;
+  right: -90px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, transparent 70%);
+  animation-duration: 19s;
+  animation-delay: -4s;
+}
+@keyframes raijin-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -30px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 40px) scale(0.97);
+  }
+  100% {
+    transform: translate(30px, 20px) scale(1.03);
+  }
+}
+
+/* Reusable glass surface */
+.glass {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  overflow: hidden;
+  transition: var(--raijin-transition);
+}
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--glass-reflex);
+  pointer-events: none;
+}
+.glass-hover:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.15);
+}
+
+/* Purple glow variant */
+.glass-glow {
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.12);
+}
+
+/* Buttons */
+.btn-primary-violet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(90deg, var(--raijin-accent), var(--raijin-accent-indigo));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.55);
+  transition: var(--raijin-transition);
+}
+.btn-primary-violet:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px -10px rgba(139, 92, 246, 0.7);
+}
+
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--raijin-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--raijin-transition);
+}
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--raijin-text-primary);
+}
+
+/* Kbd */
+.raijin-kbd {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--raijin-text-tertiary);
+}
+
+/* Scrollbar */
+.raijin-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.raijin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.raijin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.font-serif-display {
+  font-family: "Fraunces", Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.font-serif-italic {
+  font-family: "Fraunces", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+.font-mono-display {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Dark mode pour inputs natifs (autofill, date picker, checkbox) */
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.95) !important;
+  -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.04) inset !important;
+  caret-color: rgba(255, 255, 255, 0.95);
+  transition: background-color 5000s ease-in-out 0s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+  opacity: 0.6;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}

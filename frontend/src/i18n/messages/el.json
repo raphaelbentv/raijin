@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Raijin",
+    "tagline": "Αυτοματισμός τιμολογίων"
+  },
+  "auth": {
+    "login": "Σύνδεση",
+    "register": "Εγγραφή",
+    "email": "Email",
+    "password": "Κωδικός",
+    "submit": "Υποβολή"
+  },
+  "dashboard": {
+    "title": "Πίνακας ελέγχου",
+    "invoices": "Τιμολόγια",
+    "upload": "Μεταφόρτωση"
+  }
+}

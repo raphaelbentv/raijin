@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Raijin",
+    "tagline": "Automatisation de factures"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Valider"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "invoices": "Factures",
+    "upload": "Importer"
+  }
+}
