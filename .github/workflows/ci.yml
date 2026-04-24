@@ -135,6 +135,8 @@ jobs:
             sleep 3
           done
           echo "stack didn't come up"; docker compose logs --tail=200; exit 1
+      - name: Apply DB migrations
+        run: docker compose exec -T backend alembic upgrade head
       - name: Run Playwright
         working-directory: ./frontend
         env:
