@@ -38,13 +38,20 @@ test.describe("Invoices — upload OCR review export", () => {
     await page
       .locator('input[type="file"]')
       .setInputFiles(path.join(process.cwd(), "e2e/fixtures/invoice-sprint5.pdf"));
+
+    // Wait until the pending file shows up in the drop zone list — ensures React has processed
+    // the file-input onChange before we click the submit button.
+    const importButton = page.getByRole("button", { name: /^Importer/ });
+    await expect(importButton).toBeEnabled({ timeout: 5_000 });
+    await expect(importButton).toContainText(/\(1\)/);
+
     // Match any response on /invoices/upload with an explicit 60 s timeout — in CI the first
     // upload can take longer due to MinIO + Celery enqueue cold start.
     const uploadResponsePromise = page.waitForResponse(
       (response) => response.url().includes("/invoices/upload"),
       { timeout: 60_000 },
     );
-    await page.getByRole("button", { name: /^Importer/ }).click();
+    await importButton.click();
     const uploadResponse = await uploadResponsePromise;
     expect(uploadResponse.status(), `upload response body: ${await uploadResponse.text().catch(() => "<n/a>")}`).toBe(201);
     const uploaded = (await uploadResponse.json()) as { id: string };
