@@ -5,11 +5,10 @@ from datetime import date
 from decimal import Decimal
 from unittest.mock import MagicMock
 
-import pytest
+from raijin_shared.validation import ValidationReport
 
 from app.services import invoice_processor as ip
-from app.services.azure_di import ExtractedInvoice, ExtractedLine
-from raijin_shared.validation import ValidationReport
+from app.services.azure_di import ExtractedInvoice
 
 
 def _fake_invoice(status_uploaded: bool = True):

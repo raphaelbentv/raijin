@@ -1,19 +1,19 @@
 import asyncio
 from logging.config import fileConfig
 
-from alembic import context
+from raijin_shared.models.cloud_drive import CloudDriveSource  # noqa: F401
+from raijin_shared.models.correction import InvoiceCorrection  # noqa: F401
+from raijin_shared.models.email_source import EmailSource  # noqa: F401
+from raijin_shared.models.erp import ErpConnector, ErpExport  # noqa: F401
+from raijin_shared.models.mydata import MyDataConnector, MyDataSubmission  # noqa: F401
+from raijin_shared.models.notification import Notification  # noqa: F401
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
 from app.core.config import get_settings
-from app.models import Base  # noqa: F401  -- registers all models on Base.metadata
-from raijin_shared.models.correction import InvoiceCorrection  # noqa: F401
-from raijin_shared.models.email_source import EmailSource  # noqa: F401
-from raijin_shared.models.mydata import MyDataConnector, MyDataSubmission  # noqa: F401
-from raijin_shared.models.erp import ErpConnector, ErpExport  # noqa: F401
-from raijin_shared.models.cloud_drive import CloudDriveSource  # noqa: F401
-from raijin_shared.models.notification import Notification  # noqa: F401
+from app.models import Base
 
 config = context.config
 
