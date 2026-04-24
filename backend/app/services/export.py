@@ -53,6 +53,7 @@ async def query_invoices_for_export(
     session: AsyncSession,
     *,
     tenant_id: uuid.UUID,
+    ids: list[uuid.UUID] | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     supplier_id: uuid.UUID | None = None,
@@ -64,6 +65,8 @@ async def query_invoices_for_export(
         .options(selectinload(Invoice.supplier))
         .order_by(Invoice.issue_date.desc().nullslast(), Invoice.created_at.desc())
     )
+    if ids:
+        stmt = stmt.where(Invoice.id.in_(ids))
     if date_from is not None:
         stmt = stmt.where(Invoice.issue_date >= date_from)
     if date_to is not None:

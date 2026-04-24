@@ -4,6 +4,7 @@ import { makeAccount, seedAuth } from "./helpers";
 const PAGES: { path: string; expect: RegExp }[] = [
   { path: "/dashboard", expect: /Bonjour|Bon après-midi|Bonsoir/i },
   { path: "/invoices", expect: /Factures/i },
+  { path: "/reports", expect: /Rapports/i },
   { path: "/suppliers", expect: /Fournisseurs/i },
   { path: "/upload", expect: /Importer des factures/i },
   { path: "/integrations", expect: /Intégrations/i },

@@ -51,6 +51,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Tableau de bord", href: "/dashboard", icon: Home, keywords: ["dashboard", "accueil"] },
   { label: "Factures", href: "/invoices", icon: FileText, keywords: ["invoices", "factures"] },
+  { label: "Rapports", href: "/reports", icon: BarChart3, keywords: ["reports", "tva", "p&l"] },
   { label: "Fournisseurs", href: "/suppliers", icon: Building2, keywords: ["suppliers", "vendors"] },
   { label: "Importer", href: "/upload", icon: Upload, keywords: ["upload", "import"] },
   { label: "Intégrations", href: "/integrations", icon: Plug, keywords: ["outlook", "gmail", "drive", "mydata", "erp"] },

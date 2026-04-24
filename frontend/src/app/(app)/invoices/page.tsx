@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckSquare, Download, Upload } from "lucide-react";
+import { AlertTriangle, CheckSquare, Download, Send, Trash2, Upload } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
 import type { InvoiceListResponse, InvoiceStatus } from "@/lib/types";
@@ -46,6 +46,7 @@ export default function InvoicesPage() {
   const [paid, setPaid] = useState<"all" | "paid" | "unpaid">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
 
   useEffect(() => {
     const qs = new URLSearchParams({ page: String(page), page_size: "30" });
@@ -62,11 +63,29 @@ export default function InvoicesPage() {
     return Math.max(1, Math.ceil(data.total / data.page_size));
   }, [data]);
 
-  async function exportExcel() {
+  function buildListQuery(): string {
+    const qs = new URLSearchParams({ page: String(page), page_size: "30" });
+    if (filter !== "all") qs.set("status_filter", filter);
+    if (query.trim()) qs.set("q", query.trim());
+    if (paid !== "all") qs.set("paid", String(paid === "paid"));
+    return qs.toString();
+  }
+
+  async function refreshList() {
+    setData(await apiFetch<InvoiceListResponse>(`/invoices?${buildListQuery()}`));
+  }
+
+  async function exportExcel(selectedOnly = false) {
     setExporting(true);
     try {
       const token = getAccessToken();
-      const res = await fetch(`${API_URL}/exports/excel`, {
+      const qs = new URLSearchParams();
+      if (selectedOnly) {
+        for (const id of selected) qs.append("ids", id);
+      }
+      const queryString = qs.toString();
+      const path = queryString ? `/exports/excel?${queryString}` : "/exports/excel";
+      const res = await fetch(`${API_URL}${path}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!res.ok) throw new Error();
@@ -86,17 +105,28 @@ export default function InvoicesPage() {
     }
   }
 
-  async function bulk(action: "confirm" | "mark_paid" | "reopen") {
+  async function bulk(
+    action: "confirm" | "mark_paid" | "reopen" | "reject" | "submit_mydata" | "export_erp" | "delete",
+    ids = Array.from(selected),
+  ) {
     await apiFetch("/invoices/bulk", {
       method: "POST",
-      json: { ids: Array.from(selected), action },
+      json: { ids, action },
     });
     setSelected(new Set());
-    const qs = new URLSearchParams({ page: String(page), page_size: "30" });
-    if (filter !== "all") qs.set("status_filter", filter);
-    if (query.trim()) qs.set("q", query.trim());
-    if (paid !== "all") qs.set("paid", String(paid === "paid"));
-    setData(await apiFetch<InvoiceListResponse>(`/invoices?${qs.toString()}`));
+    await refreshList();
+  }
+
+  async function dropToStatus(status: InvoiceStatus | "all") {
+    if (!draggedId || status === "all") return;
+    const actionByStatus: Partial<Record<InvoiceStatus, "confirm" | "reopen" | "reject">> = {
+      confirmed: "confirm",
+      ready_for_review: "reopen",
+      rejected: "reject",
+    };
+    const action = actionByStatus[status];
+    setDraggedId(null);
+    if (action) await bulk(action, [draggedId]);
   }
 
   return (
@@ -111,7 +141,7 @@ export default function InvoicesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <button onClick={exportExcel} className="btn-glass" disabled={exporting}>
+          <button onClick={() => exportExcel()} className="btn-glass" disabled={exporting}>
             <Download className="h-3.5 w-3.5" />
             {exporting ? "Export…" : "Exporter Excel"}
           </button>
@@ -127,6 +157,10 @@ export default function InvoicesPage() {
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.value}
+            onDragOver={(e) => {
+              if (draggedId) e.preventDefault();
+            }}
+            onDrop={() => dropToStatus(f.value)}
             onClick={() => {
               setFilter(f.value);
               setPage(1);
@@ -180,6 +214,22 @@ export default function InvoicesPage() {
             {selected.size} sélectionnée(s)
             <button className="btn-glass" onClick={() => bulk("confirm")}>Valider</button>
             <button className="btn-glass" onClick={() => bulk("mark_paid")}>Marquer payées</button>
+            <button className="btn-glass" onClick={() => exportExcel(true)}>
+              <Download className="h-3.5 w-3.5" />
+              Export
+            </button>
+            <button className="btn-glass" onClick={() => bulk("submit_mydata")}>
+              <Send className="h-3.5 w-3.5" />
+              myDATA
+            </button>
+            <button className="btn-glass" onClick={() => bulk("export_erp")}>ERP</button>
+            <button
+              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[12px] font-medium text-rose-200"
+              onClick={() => bulk("delete")}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Supprimer
+            </button>
           </div>
         )}
       </div>
@@ -212,6 +262,9 @@ export default function InvoicesPage() {
                 {data?.items.map((inv) => (
                   <tr
                     key={inv.id}
+                    draggable
+                    onDragStart={() => setDraggedId(inv.id)}
+                    onDragEnd={() => setDraggedId(null)}
                     className="cursor-pointer transition hover:bg-white/[0.03]"
                     onClick={() => {
                       window.location.href = `/invoices/${inv.id}`;

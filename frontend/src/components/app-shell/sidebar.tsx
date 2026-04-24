@@ -35,6 +35,7 @@ interface NavItem {
 const MAIN_NAV: NavItem[] = [
   { label: "Tableau de bord", href: "/dashboard", icon: Home },
   { label: "Factures", href: "/invoices", icon: FileText },
+  { label: "Rapports", href: "/reports", icon: BarChart3 },
   { label: "Fournisseurs", href: "/suppliers", icon: Building2 },
   { label: "Importer", href: "/upload", icon: Upload },
   { label: "Intégrations", href: "/integrations", icon: Plug, adminOnly: true },

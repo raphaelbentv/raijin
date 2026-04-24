@@ -202,6 +202,17 @@ async def bulk_action(
             elif body.action == "mark_paid":
                 invoice.paid_at = datetime.now(UTC).date()
                 await db.commit()
+            elif body.action == "submit_mydata":
+                from app.core.celery_client import get_celery
+
+                get_celery().send_task("mydata.submit_invoice", args=[str(invoice.id)])
+            elif body.action == "export_erp":
+                from app.core.celery_client import get_celery
+
+                get_celery().send_task("erp.export_invoice", args=[str(invoice.id)])
+            elif body.action == "delete":
+                await db.delete(invoice)
+                await db.commit()
             else:
                 raise HTTPException(status_code=400, detail="unknown_bulk_action")
             processed += 1

@@ -23,12 +23,14 @@ async def export_excel(
     user: CurrentUser,
     date_from: Annotated[date | None, Query(alias="from")] = None,
     date_to: Annotated[date | None, Query(alias="to")] = None,
+    ids: Annotated[list[UUID] | None, Query()] = None,
     supplier_id: UUID | None = None,
     status_filter: InvoiceStatus | None = None,
 ) -> StreamingResponse:
     invoices = await query_invoices_for_export(
         db,
         tenant_id=user.tenant_id,
+        ids=ids,
         date_from=date_from,
         date_to=date_to,
         supplier_id=supplier_id,

@@ -7,15 +7,23 @@ import {
   ArrowLeft,
   AlertTriangle,
   Check,
+  CreditCard,
   RotateCcw,
   Save,
+  Share2,
   SkipForward,
   Sparkles,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ApiError, apiFetch } from "@/lib/api";
-import type { InvoiceComment, InvoiceDetail, InvoiceLine, InvoicePatch } from "@/lib/types";
+import type {
+  InvoiceCategory,
+  InvoiceComment,
+  InvoiceDetail,
+  InvoiceLine,
+  InvoicePatch,
+} from "@/lib/types";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/status-badge";
@@ -145,10 +153,14 @@ export default function InvoiceReviewPage({ params }: { params: { id: string } }
   const [totalTtc, setTotalTtc] = useState("");
   const [paidAt, setPaidAt] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<InvoiceCategory[]>([]);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [tags, setTags] = useState("");
   const [lines, setLines] = useState<InvoiceLine[]>([]);
   const [comments, setComments] = useState<InvoiceComment[]>([]);
   const [commentBody, setCommentBody] = useState("");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [showReject, setShowReject] = useState(false);
 
@@ -165,9 +177,11 @@ export default function InvoiceReviewPage({ params }: { params: { id: string } }
       setTotalTtc(data.total_ttc ?? "");
       setPaidAt(data.paid_at ?? "");
       setPaymentReference(data.payment_reference ?? "");
+      setCategoryId(data.category_id ?? "");
       setTags((data.tags ?? []).join(", "));
       setLines(data.lines);
       apiFetch<InvoiceComment[]>(`/invoices/${id}/comments`).then(setComments).catch(() => {});
+      apiFetch<InvoiceCategory[]>("/invoices/categories").then(setCategories).catch(() => {});
     } catch (err) {
       setError(err instanceof ApiError ? `Erreur ${err.status}` : "Erreur réseau");
     }
@@ -205,13 +219,11 @@ export default function InvoiceReviewPage({ params }: { params: { id: string } }
         total_ht: totalHt || null,
         total_vat: totalVat || null,
         total_ttc: totalTtc || null,
-        paid_at: paidAt || null,
-        payment_reference: paymentReference || null,
-        payment_method: paidAt ? "manual" : null,
         tags: tags
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
+        category_id: categoryId || null,
         lines,
       };
       const updated = await apiFetch<InvoiceDetail>(`/invoices/${invoice.id}`, {
@@ -295,6 +307,42 @@ export default function InvoiceReviewPage({ params }: { params: { id: string } }
     });
     setInvoice(approved);
     toast.success("Approbation enregistrée");
+  }
+
+  async function savePayment() {
+    if (!invoice) return;
+    const updated = await apiFetch<InvoiceDetail>(`/invoices/${invoice.id}/payment`, {
+      method: "PATCH",
+      json: {
+        paid_at: paidAt || null,
+        payment_reference: paymentReference || null,
+        payment_method: paidAt ? "manual" : null,
+      },
+    });
+    setInvoice(updated);
+    toast.success("Paiement enregistré");
+  }
+
+  async function createShareLink() {
+    if (!invoice) return;
+    const share = await apiFetch<{ url: string }>(`/invoices/${invoice.id}/share`, {
+      method: "POST",
+    });
+    const url = `${window.location.origin}${share.url}`;
+    setShareUrl(url);
+    toast.success("Lien portail créé");
+  }
+
+  async function createCategory() {
+    if (!newCategoryName.trim()) return;
+    const category = await apiFetch<InvoiceCategory>("/invoices/categories", {
+      method: "POST",
+      json: { name: newCategoryName.trim(), color: "#8b5cf6" },
+    });
+    setCategories((items) => [...items, category].sort((a, b) => a.name.localeCompare(b.name)));
+    setCategoryId(category.id);
+    setNewCategoryName("");
+    toast.success("Catégorie créée");
   }
 
   async function addComment() {
@@ -498,6 +546,32 @@ export default function InvoiceReviewPage({ params }: { params: { id: string } }
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-[11px] text-white/55">Catégorie</Label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">Sans catégorie</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-2 sm:col-span-2">
+                <input
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Nouvelle catégorie"
+                  className={inputClass}
+                />
+                <button className="btn-glass" onClick={createCategory}>
+                  Créer
+                </button>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label className="text-[11px] text-white/55">Tags</Label>
                 <input
                   value={tags}
@@ -509,6 +583,23 @@ export default function InvoiceReviewPage({ params }: { params: { id: string } }
               <button className="btn-glass w-fit" onClick={approve}>
                 Approuver
               </button>
+              <button className="btn-glass w-fit" onClick={savePayment}>
+                <CreditCard className="h-3.5 w-3.5" />
+                Sauver paiement
+              </button>
+              <button className="btn-glass w-fit" onClick={createShareLink}>
+                <Share2 className="h-3.5 w-3.5" />
+                Partager portail
+              </button>
+              {shareUrl && (
+                <a
+                  href={shareUrl}
+                  target="_blank"
+                  className="break-all text-[12px] text-violet-200 underline underline-offset-4 sm:col-span-2"
+                >
+                  {shareUrl}
+                </a>
+              )}
             </div>
           </Section>
 
